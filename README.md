@@ -37,13 +37,23 @@ are flagged as **ambiguous** and listed with every possible count (e.g. `2 3`).
   at once — it is fetched once and cached, never queried per search. See
   [Dictionary sources](#dictionary-sources) to plug in other APIs.
 
+## Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `DICTIONARY_API_URL` | *(none)* | URL of the dictionary API used by the default `url-entries` source. It is expected to return `{ "entries": [...] }` (or a bare array) of entry URLs. |
+| `DICTIONARY_SOURCE` | `url-entries` | Which dictionary source adapter to use. See [Dictionary sources](#dictionary-sources). |
+
+Both can be set directly in your shell or in a `.env` file (loaded via `dotenv`).
+
 ## Setup
 
 ```sh
 npm install
 ```
 
-Create a `.env` file (or set the environment variable) with your API URL:
+Create a `.env` file (or set the variables in your environment) — see
+[Environment variables](#environment-variables) above. For the default source:
 
 ```sh
 DICTIONARY_API_URL=https://your-dictionary.example.com/entries
