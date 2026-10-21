@@ -5,6 +5,10 @@
   "main": "main.js",
   "scripts": {
     "sync": "node main.js --sync",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,json}\"",
+    "format:check": "prettier --check \"**/*.{js,json}\"",
     "test": "node --test"
   },
   "keywords": [],
@@ -12,5 +16,11 @@
   "dependencies": {
     "axios": "^1.20.0",
     "dotenv": "^18.0.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10"
   }
 }
