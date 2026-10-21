@@ -34,6 +34,25 @@ const CSV_FILE = path.join(__dirname, 'data', 'word-bank.csv');
 const BANK_FILE = path.join(__dirname, 'data', 'words-3syllables.txt');
 
 // ---------------------------------------------------------------------------
+// Filesystem safety net
+// ---------------------------------------------------------------------------
+
+/**
+ * Write a generated artifact, creating its parent directory first if it is
+ * missing. data/ is gitignored, so a fresh checkout does not have it yet; this
+ * keeps --sync and --csv working instead of failing with ENOENT.
+ */
+function writeArtifact(file, contents) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, contents);
+  } catch (err) {
+    console.error(`Error: could not write ${file}: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Fetch + cache, and load
 // ---------------------------------------------------------------------------
 
@@ -42,7 +61,7 @@ async function syncWords() {
   // This keeps main.js API-agnostic: adding a new API server means dropping a
   // source file into ./sources rather than editing this file.
   const words = await fetchWords();
-  fs.writeFileSync(WORDS_FILE, words.join('\n') + '\n');
+  writeArtifact(WORDS_FILE, words.join('\n') + '\n');
   console.log(`Saved ${words.length} words to ${WORDS_FILE}`);
 }
 
@@ -56,7 +75,18 @@ function loadWords(file = WORDS_FILE) {
     }
     process.exit(1);
   }
-  const text = fs.readFileSync(file, 'utf8');
+
+  let text;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    console.error(`Error: could not read ${file}: ${err.message}`);
+    if (err.code === 'ENOENT') {
+      console.error('It may have been removed; run "node main.js --sync" to rebuild it.');
+    }
+    process.exit(1);
+  }
+
   return new Set(text.split(/\r?\n/).filter(Boolean));
 }
 
@@ -124,10 +154,10 @@ function buildCsv() {
   for (const row of rows) {
     lines.push(row.map(csvCell).join(','));
   }
-  fs.writeFileSync(CSV_FILE, lines.join('\n') + '\n');
+  writeArtifact(CSV_FILE, lines.join('\n') + '\n');
 
   const bankWords = rows.map((row) => row[0]);
-  fs.writeFileSync(BANK_FILE, bankWords.join('\n') + '\n');
+  writeArtifact(BANK_FILE, bankWords.join('\n') + '\n');
 
   console.log(`Wrote ${written} words to ${CSV_FILE} and ${BANK_FILE}`);
   console.log(`  excluded for spaces: ${withSpaces}`);
