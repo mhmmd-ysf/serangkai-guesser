@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-require('dotenv').config({})
+require('dotenv').config({});
 const fs = require('fs');
 const path = require('path');
 const { fetchWords } = require('./sources');
