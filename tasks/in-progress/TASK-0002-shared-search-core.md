@@ -125,3 +125,6 @@ production impact.
 ## Status Log
 
 - 2026-10-21 — Created in `tasks/backlog`. Owner: TBD. Not started.
+- 2026-10-23 — Moved to `tasks/in-progress`. Owner: Zed agent. Branch: `refactor/0002-shared-search-core` (base `main`). Started implementation.
+- 2026-10-23 — Added `lib/errors.js`, `lib/search.js`, `lib/wordList.js`; refactored `main.js` and both `sources/` adapters to throw typed `AppError` subclasses instead of `process.exit`; added `test/search.test.js` and `test/wordList.test.js`.
+- 2026-10-23 — Validation: `npm run lint` and `npm run format:check` exit 0; `npm test` passes 29/29. Verified `--help` (exit 0), missing-bank guidance (exit 1), and `node main.js "ba*a*a"` output. `process.exit(` no longer appears in any JS source. Implementation complete.

@@ -29,7 +29,7 @@ digraph/diphthong semantics. The HTTP layer is a thin adapter over the same
 | ID | Title | Depends on | Size (est.) | State |
 |----|-------|------------|-------------|-------|
 | TASK-0001 | Quality baseline: lint, format, CI | — | S (~150 lines) | in-progress |
-| TASK-0002 | Extract shared search core, remove reusable `process.exit` | 0001 | M (~200 lines) | backlog |
+| TASK-0002 | Extract shared search core, remove reusable `process.exit` | 0001 | M (~200 lines) | in-progress |
 | TASK-0003 | Emit `data/word-bank.json` | 0002 | M (~200 lines) | backlog |
 | TASK-0004 | Word bank loader and in-memory index | 0002, 0003 | M (~250 lines) | backlog |
 | TASK-0005 | Express server foundation | 0004 | M (~200 lines) | backlog |
