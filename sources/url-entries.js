@@ -1,6 +1,7 @@
 'use strict';
 
 const axios = require('axios');
+const { ConfigError, SourceResponseError } = require('../lib/errors');
 
 /**
  * Entries look like "https://host/entri/adenda" (or "url/entry/word").
@@ -35,12 +36,11 @@ async function fetchWords() {
   const apiUrl = process.env.DICTIONARY_API_URL || '';
 
   if (!apiUrl) {
-    console.error('Error: no API URL configured.');
-    console.error(
+    throw new ConfigError(
+      'no API URL configured.',
       'Set the DICTIONARY_API_URL environment variable, or choose another ' +
         'source via the DICTIONARY_SOURCE environment variable.'
     );
-    process.exit(1);
   }
 
   console.log(`Fetching ${apiUrl} ...`);
@@ -49,8 +49,9 @@ async function fetchWords() {
   const data = res.data;
   const entries = Array.isArray(data) ? data : data && data.entries;
   if (!Array.isArray(entries)) {
-    console.error('Error: unexpected response shape. Expected { "entries": [...] } or an array.');
-    process.exit(1);
+    throw new SourceResponseError(
+      'unexpected response shape. Expected { "entries": [...] } or an array.'
+    );
   }
 
   return extractWords(entries);

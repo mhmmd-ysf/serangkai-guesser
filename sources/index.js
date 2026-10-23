@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { UnknownSourceError } = require('../lib/errors');
 
 // ---------------------------------------------------------------------------
 // Dictionary sources
@@ -40,9 +41,10 @@ function getSource(name) {
   const source = sources[key];
   if (!source) {
     const available = Object.keys(sources).sort().join(', ') || '(none)';
-    console.error(`Error: unknown dictionary source "${key}".`);
-    console.error(`Available sources: ${available}`);
-    process.exit(1);
+    throw new UnknownSourceError(
+      `unknown dictionary source "${key}".`,
+      `Available sources: ${available}`
+    );
   }
   return source;
 }
