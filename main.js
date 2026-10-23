@@ -5,17 +5,11 @@ const fs = require('fs');
 const path = require('path');
 const { fetchWords } = require('./sources');
 const { printUsage } = require('./helpers/printUsage');
-const {
-  wordTokens,
-  patternTokens,
-  globMatch,
-  gameLetterCount,
-  countLetters,
-  bannedLetters,
-  matchesConstraints,
-} = require('./helpers/tokens');
+const { gameLetterCount, countLetters, bannedLetters } = require('./helpers/tokens');
 const { syllablePossibilities } = require('./helpers/syllables');
 const { DEFAULT_RESULT_LIMIT, MAX_GAME_LETTERS } = require('./helpers/constants');
+const { search } = require('./lib/search');
+const { loadWordList } = require('./lib/wordList');
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -47,13 +41,12 @@ function writeArtifact(file, contents) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, contents);
   } catch (err) {
-    console.error(`Error: could not write ${file}: ${err.message}`);
-    process.exit(1);
+    throw new Error(`could not write ${file}: ${err.message}`, { cause: err });
   }
 }
 
 // ---------------------------------------------------------------------------
-// Fetch + cache, and load
+// Fetch + cache
 // ---------------------------------------------------------------------------
 
 async function syncWords() {
@@ -63,42 +56,6 @@ async function syncWords() {
   const words = await fetchWords();
   writeArtifact(WORDS_FILE, words.join('\n') + '\n');
   console.log(`Saved ${words.length} words to ${WORDS_FILE}`);
-}
-
-function loadWords(file = WORDS_FILE) {
-  if (!fs.existsSync(file)) {
-    console.error(`Error: ${file} not found.`);
-    if (file === BANK_FILE) {
-      console.error('Run "node main.js --csv" first to build the word bank.');
-    } else {
-      console.error('Run "node main.js --sync" first to fetch and cache the dictionary.');
-    }
-    process.exit(1);
-  }
-
-  let text;
-  try {
-    text = fs.readFileSync(file, 'utf8');
-  } catch (err) {
-    console.error(`Error: could not read ${file}: ${err.message}`);
-    if (err.code === 'ENOENT') {
-      console.error('It may have been removed; run "node main.js --sync" to rebuild it.');
-    }
-    process.exit(1);
-  }
-
-  return new Set(text.split(/\r?\n/).filter(Boolean));
-}
-
-function search(words, pattern, mustHave, mustNotHave) {
-  const pat = patternTokens(pattern);
-  const matches = [];
-  for (const word of words) {
-    if (globMatch(pat, wordTokens(word)) && matchesConstraints(word, mustHave, mustNotHave)) {
-      matches.push(word);
-    }
-  }
-  return matches;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +73,7 @@ function csvCell(value) {
  * counts.
  */
 function buildCsv() {
-  const words = loadWords();
+  const words = loadWordList(WORDS_FILE);
   const rows = [];
   let written = 0;
   let withSpaces = 0;
@@ -230,7 +187,7 @@ async function main() {
   const mustHave = countLetters(opts.has);
   const mustNotHave = bannedLetters(opts.not);
 
-  const words = loadWords(BANK_FILE);
+  const words = loadWordList(BANK_FILE);
   const matches = search(words, opts.pattern, mustHave, mustNotHave);
 
   const parts = [`"${opts.pattern}"`];
@@ -251,5 +208,8 @@ async function main() {
 
 main().catch((err) => {
   console.error('Error:', err.message);
-  process.exit(1);
+  if (err.hint) {
+    console.error(err.hint);
+  }
+  process.exitCode = 1;
 });
